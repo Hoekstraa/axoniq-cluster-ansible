@@ -1,0 +1,11 @@
+axon:
+  hosts:
+    ax01:
+      ansible_host: 192.168.122.75
+    ax02:
+      ansible_host: 192.168.122.86
+    ax03:
+      ansible_host: 192.168.122.152
+app:
+  hosts:
+    192.168.122.253
