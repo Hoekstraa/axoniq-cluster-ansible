@@ -1,0 +1,8 @@
+127.0.0.1		localhost
+192.168.122.75	ax01.home.cyberengineer.nl	ax01
+192.168.122.86	ax02.home.cyberengineer.nl	ax02
+192.168.122.152	ax03.home.cyberengineer.nl	ax03
+
+::1				localhost ip6-localhost ip6-loopback
+ff02::1			ip6-allnodes
+ff02::2			ip6-allrouters

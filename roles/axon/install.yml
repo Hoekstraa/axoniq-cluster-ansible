@@ -1,3 +1,12 @@
+- name: Copy hosts file to Axon hosts
+  hosts: axon
+  tasks:
+    - name: Copy hosts to /etc/hosts
+      become: true
+      copy:
+        src: files/hosts
+        dest: /etc/hosts
+
 - name: AxonServer.zip should be unzipped
   hosts: localhost
   tasks:
