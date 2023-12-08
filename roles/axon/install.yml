@@ -31,6 +31,9 @@
       copy:
         src: "temp/server_files/{{hostvars.localhost.extracted_files.files[0]}}"
         dest: "/home/axon"
+        owner: axon
+        group: axon
+        mode: 0400
 
 - name: Use custom properties file
   hosts: axon
@@ -40,6 +43,21 @@
       copy:
         src: files/axonserver.properties
         dest: "/home/axon"
+        owner: axon
+        group: axon
+        mode: 0400
+
+- name: Copy license file to Axon hosts
+  hosts: axon
+  tasks:
+    - name: Copy license file
+      become: true
+      copy:
+        src: ../../files/axoniq.license
+        dest: /home/axon
+        owner: axon
+        group: axon
+        mode: 0400
 
 # https://wiki.debian.org/Java
 - name: Install java runtime on Axon hosts
