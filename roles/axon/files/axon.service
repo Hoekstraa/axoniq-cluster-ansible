@@ -1,0 +1,19 @@
+# https://www.baeldung.com/linux/run-java-application-as-service
+[Unit]
+Description=Axon service
+After=network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=axon
+Group=axon
+
+Type=simple
+
+WorkingDirectory=/home/axon/
+ExecStart=java -jar axonserver.jar
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

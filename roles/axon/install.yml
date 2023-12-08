@@ -1,45 +1,77 @@
 - name: AxonServer.zip should be unzipped
   hosts: localhost
   tasks:
-    - name: Make folder
+    - name: Make folder to extract to
       file:
-        path: ../../files/server
+        path: temp/server_files
         state: directory
-    - name: Extract ./files/AxonServer.zip into ./files/server/
+    - name: Extract ./files/AxonServer.zip into temp/server_files/
       unarchive:
         src: ../../files/AxonServer.zip
-        dest: ../../files/server
-        extra_opts:
-          - "--add-file"
-          - "*/."
+        dest: temp/server_files
+        list_files: true
+      register: extracted_files
 
-- name: Get latest unzipped files in the folder
-  hosts: localhost
-  tasks:
-    - name: Register all unzipped folders in the server folder
-      find:
-        paths: ../../files/server
-        file_type: directory
-      register: found_files
-    - name: Creating a variable of the newest folder
-      set_fact:
-        newest_folder: "{{(found_files.files | sort(attribute='mtime',reverse=true) | first).path}}"
-    - name: Debug folder name
-      debug:
-        var: newest_folder
-    - name: Copy over the files to the Axon host
-      copy:
-        src: "{{newest_folder}}/"
-        dest: "~/axon"
-
-
-
-- name: Files are on the server
+# https://forum.ansible.com/t/unpacking-a-zip-with-variably-named-root-folder/2805/2
+# Depends on variable set in previous Playbook.
+- name: Upload unzipped files to Axon hosts
   hosts: axon
   tasks:
-   - name: Copy directory
-     ansible.builtin.ping:
+    - name: Copy over the files to the Axon host
+      become: true
+      copy:
+        src: "temp/server_files/{{hostvars.localhost.extracted_files.files[0]}}"
+        dest: "/home/axon"
 
-   - name: Print message
-     ansible.builtin.debug:
-      msg: "Hi there!"
+# https://wiki.debian.org/Java
+- name: Install java runtime on Axon hosts
+  hosts: axon
+  tasks:
+    - name: Install Java Runtime Environment
+      become: true
+      package:
+        name: default-jre
+        state: present
+
+- name: Configure Axon users
+  hosts: axon
+  become: true
+  tasks:
+    - name: Ensure group "axon" exists
+      group:
+        name: axon
+        state: present
+    - name: Create axon user
+      user:
+        name: axon
+        group: axon
+        uid: 10000
+        password: "!"
+        home: "/home/axon"
+    - name: Set home folder access rights
+      file:
+        path: "/home/axon"
+        owner: axon
+        mode: "0750"
+
+- name: Set up Axon systemd service
+  hosts: axon
+  tasks:
+    - name: Copy service file to host
+      become: true
+      copy:
+        src: files/axon.service
+        dest: /etc/systemd/system
+      notify:
+        - Reload systemd
+  handlers:
+    - name: Reload systemd
+      systemd_service:
+        daemon_reload: true
+
+# - name: Register nodes to a cluster
+#   hosts: axon
+#   tasks:
+#     - name: Register node to master
+#       command:
+#         run: java -jar axoniq-cli.jar register-node -h axon01
