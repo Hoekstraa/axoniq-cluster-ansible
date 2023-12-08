@@ -1,0 +1,8 @@
+- name: Ensure Axon services are restarted
+  hosts: axon
+  tasks:
+    - name: Restart axon systemd service
+      become: true
+      systemd_service:
+        name: axon
+        state: restarted

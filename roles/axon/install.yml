@@ -17,10 +17,19 @@
 - name: Upload unzipped files to Axon hosts
   hosts: axon
   tasks:
-    - name: Copy over the files to the Axon host
+    - name: Copy over the files to the Axon hosts
       become: true
       copy:
         src: "temp/server_files/{{hostvars.localhost.extracted_files.files[0]}}"
+        dest: "/home/axon"
+
+- name: Use custom properties file
+  hosts: axon
+  tasks:
+    - name: Copy custom properties file to the Axon hosts
+      become: true
+      copy:
+        src: files/axonserver.properties
         dest: "/home/axon"
 
 # https://wiki.debian.org/Java
@@ -68,6 +77,17 @@
     - name: Reload systemd
       systemd_service:
         daemon_reload: true
+
+- name: Ensure Axon services are running
+  hosts: axon
+  tasks:
+    - name: Enable and start axon systemd service
+      become: true
+      systemd_service:
+        name: axon
+        enabled: yes
+        state: started
+
 
 # - name: Register nodes to a cluster
 #   hosts: axon
