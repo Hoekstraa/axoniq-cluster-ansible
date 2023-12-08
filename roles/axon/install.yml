@@ -1,0 +1,45 @@
+- name: AxonServer.zip should be unzipped
+  hosts: localhost
+  tasks:
+    - name: Make folder
+      file:
+        path: ../../files/server
+        state: directory
+    - name: Extract ./files/AxonServer.zip into ./files/server/
+      unarchive:
+        src: ../../files/AxonServer.zip
+        dest: ../../files/server
+        extra_opts:
+          - "--add-file"
+          - "*/."
+
+- name: Get latest unzipped files in the folder
+  hosts: localhost
+  tasks:
+    - name: Register all unzipped folders in the server folder
+      find:
+        paths: ../../files/server
+        file_type: directory
+      register: found_files
+    - name: Creating a variable of the newest folder
+      set_fact:
+        newest_folder: "{{(found_files.files | sort(attribute='mtime',reverse=true) | first).path}}"
+    - name: Debug folder name
+      debug:
+        var: newest_folder
+    - name: Copy over the files to the Axon host
+      copy:
+        src: "{{newest_folder}}/"
+        dest: "~/axon"
+
+
+
+- name: Files are on the server
+  hosts: axon
+  tasks:
+   - name: Copy directory
+     ansible.builtin.ping:
+
+   - name: Print message
+     ansible.builtin.debug:
+      msg: "Hi there!"
